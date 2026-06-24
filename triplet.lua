@@ -366,4 +366,3 @@ workspace.DescendantRemoving:Connect(function(object)
 	generatorHighlights[object] = nil
 end)
 
-for my game full code no commens
