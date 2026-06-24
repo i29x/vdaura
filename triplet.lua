@@ -4,9 +4,11 @@ local LocalPlayer = Players.LocalPlayer
 local SurvivorColor = Color3.fromRGB(0, 255, 70)
 local KillerColor = Color3.fromRGB(255, 35, 35)
 local GeneratorColor = Color3.fromRGB(255, 220, 0)
+local VaultColor = Color3.fromRGB(0, 170, 255)
 
 local playerConnections = {}
 local generatorHighlights = {}
+local vaultHighlights = {}
 
 local function getPlayerColor(player)
 	local teamName = player.Team and string.lower(player.Team.Name) or ""
@@ -126,6 +128,14 @@ local function setupPlayer(player)
 	end
 end
 
+local function getAdornee(object)
+	if object:IsA("Model") or object:IsA("BasePart") then
+		return object
+	end
+
+	return object:FindFirstAncestorOfClass("Model")
+end
+
 local function isGenerator(object)
 	local name = string.lower(object.Name)
 
@@ -136,41 +146,55 @@ local function isGenerator(object)
 		or object:GetAttribute("IsGenerator") == true
 end
 
-local function getGeneratorAdornee(object)
-	if object:IsA("Model") or object:IsA("BasePart") then
-		return object
-	end
+local function isVaultOrPallet(object)
+	local name = string.lower(object.Name)
 
-	return object:FindFirstAncestorOfClass("Model")
+	return name == "vault"
+		or name == "vaults"
+		or name == "pallet"
+		or name == "pallets"
+		or string.find(name, "vault")
+		or string.find(name, "pallet")
+		or object:GetAttribute("Vault") == true
+		or object:GetAttribute("Vaults") == true
+		or object:GetAttribute("IsVault") == true
+		or object:GetAttribute("Pallet") == true
+		or object:GetAttribute("Pallets") == true
+		or object:GetAttribute("IsPallet") == true
 end
 
-local function addGeneratorHighlight(object)
-	if generatorHighlights[object] or not isGenerator(object) then
+local function addObjectHighlight(object, storage, highlightName, color, checkFunction)
+	if storage[object] or not checkFunction(object) then
 		return
 	end
 
-	local adornee = getGeneratorAdornee(object)
+	local adornee = getAdornee(object)
 	if not adornee then
 		return
 	end
 
-	local existing = adornee:FindFirstChild("GeneratorHighlight")
+	local existing = adornee:FindFirstChild(highlightName)
 	if existing then
-		generatorHighlights[object] = existing
+		storage[object] = existing
 		return
 	end
 
 	local highlight = Instance.new("Highlight")
-	highlight.Name = "GeneratorHighlight"
-	highlight.FillColor = GeneratorColor
-	highlight.OutlineColor = GeneratorColor
+	highlight.Name = highlightName
+	highlight.FillColor = color
+	highlight.OutlineColor = color
 	highlight.FillTransparency = 0.35
 	highlight.OutlineTransparency = 0
 	highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
 	highlight.Adornee = adornee
 	highlight.Parent = adornee
 
-	generatorHighlights[object] = highlight
+	storage[object] = highlight
+end
+
+local function scanObject(object)
+	addObjectHighlight(object, generatorHighlights, "GeneratorHighlight", GeneratorColor, isGenerator)
+	addObjectHighlight(object, vaultHighlights, "VaultPalletHighlight", VaultColor, isVaultOrPallet)
 end
 
 for _, player in ipairs(Players:GetPlayers()) do
@@ -190,14 +214,15 @@ Players.PlayerRemoving:Connect(function(player)
 end)
 
 for _, object in ipairs(workspace:GetDescendants()) do
-	addGeneratorHighlight(object)
+	scanObject(object)
 end
 
 workspace.DescendantAdded:Connect(function(object)
 	task.wait()
-	addGeneratorHighlight(object)
+	scanObject(object)
 end)
 
 workspace.DescendantRemoving:Connect(function(object)
 	generatorHighlights[object] = nil
+	vaultHighlights[object] = nil
 end)
