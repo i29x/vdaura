@@ -4,7 +4,7 @@ local LocalPlayer = Players.LocalPlayer
 local SurvivorColor = Color3.fromRGB(0, 255, 70)
 local KillerColor = Color3.fromRGB(255, 35, 35)
 local GeneratorColor = Color3.fromRGB(255, 220, 0)
-local VaultPalletColor = Color3.fromRGB(0, 0, 0)
+local VaultPalletColor = Color3.fromRGB(255, 0, 0)
 
 local playerConnections = {}
 local generatorHighlights = {}
@@ -19,10 +19,6 @@ local function getPlayerColor(player)
 
 	if string.find(teamName, "survivor") or string.find(teamName, "innocent") or string.find(teamName, "civilian") then
 		return SurvivorColor
-	end
-
-	if player.TeamColor then
-		return player.TeamColor.Color
 	end
 
 	return SurvivorColor
@@ -151,13 +147,22 @@ local function isVaultOrPallet(object)
 
 	return name == "vault"
 		or name == "vaults"
+		or name == "vualt"
+		or name == "vualts"
 		or name == "pallet"
 		or name == "pallets"
 		or string.find(name, "vault") ~= nil
+		or string.find(name, "vaults") ~= nil
+		or string.find(name, "vualt") ~= nil
+		or string.find(name, "vualts") ~= nil
 		or string.find(name, "pallet") ~= nil
+		or string.find(name, "pallets") ~= nil
 		or object:GetAttribute("Vault") == true
 		or object:GetAttribute("Vaults") == true
+		or object:GetAttribute("Vualt") == true
+		or object:GetAttribute("Vualts") == true
 		or object:GetAttribute("IsVault") == true
+		or object:GetAttribute("IsVualt") == true
 		or object:GetAttribute("Pallet") == true
 		or object:GetAttribute("Pallets") == true
 		or object:GetAttribute("IsPallet") == true
