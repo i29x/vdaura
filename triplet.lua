@@ -4,11 +4,11 @@ local LocalPlayer = Players.LocalPlayer
 local SurvivorColor = Color3.fromRGB(0, 255, 70)
 local KillerColor = Color3.fromRGB(255, 35, 35)
 local GeneratorColor = Color3.fromRGB(255, 220, 0)
-local VaultColor = Color3.fromRGB(0, 170, 255)
+local VaultPalletColor = Color3.fromRGB(0, 0, 0)
 
 local playerConnections = {}
 local generatorHighlights = {}
-local vaultHighlights = {}
+local vaultPalletHighlights = {}
 
 local function getPlayerColor(player)
 	local teamName = player.Team and string.lower(player.Team.Name) or ""
@@ -141,7 +141,7 @@ local function isGenerator(object)
 
 	return name == "generator"
 		or name == "generators"
-		or string.find(name, "generator")
+		or string.find(name, "generator") ~= nil
 		or object:GetAttribute("Generator") == true
 		or object:GetAttribute("IsGenerator") == true
 end
@@ -153,8 +153,8 @@ local function isVaultOrPallet(object)
 		or name == "vaults"
 		or name == "pallet"
 		or name == "pallets"
-		or string.find(name, "vault")
-		or string.find(name, "pallet")
+		or string.find(name, "vault") ~= nil
+		or string.find(name, "pallet") ~= nil
 		or object:GetAttribute("Vault") == true
 		or object:GetAttribute("Vaults") == true
 		or object:GetAttribute("IsVault") == true
@@ -163,7 +163,7 @@ local function isVaultOrPallet(object)
 		or object:GetAttribute("IsPallet") == true
 end
 
-local function addObjectHighlight(object, storage, highlightName, color, checkFunction)
+local function addHighlight(object, storage, highlightName, color, checkFunction)
 	if storage[object] or not checkFunction(object) then
 		return
 	end
@@ -193,8 +193,8 @@ local function addObjectHighlight(object, storage, highlightName, color, checkFu
 end
 
 local function scanObject(object)
-	addObjectHighlight(object, generatorHighlights, "GeneratorHighlight", GeneratorColor, isGenerator)
-	addObjectHighlight(object, vaultHighlights, "VaultPalletHighlight", VaultColor, isVaultOrPallet)
+	addHighlight(object, generatorHighlights, "GeneratorHighlight", GeneratorColor, isGenerator)
+	addHighlight(object, vaultPalletHighlights, "VaultPalletHighlight", VaultPalletColor, isVaultOrPallet)
 end
 
 for _, player in ipairs(Players:GetPlayers()) do
@@ -224,5 +224,5 @@ end)
 
 workspace.DescendantRemoving:Connect(function(object)
 	generatorHighlights[object] = nil
-	vaultHighlights[object] = nil
+	vaultPalletHighlights[object] = nil
 end)
